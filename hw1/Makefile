@@ -1,0 +1,31 @@
+BUILDDIR = build
+
+# Если изменили имя теста, то надо изменить его и здесь тоже
+TEST_EXEC = $(BUILDDIR)/my_class_test
+
+all: build
+
+build:
+	cmake -B$(BUILDDIR) -H.
+	$(MAKE) -C $(BUILDDIR)
+
+test: build
+	$(TEST_EXEC)
+
+memory: build
+	valgrind --leak-check=full $(TEST_EXEC)
+
+format: clean
+	find . -iname "*.h" -o -iname "*.cpp" | xargs clang-format -i --Werror
+
+lint: clean
+	cpplint --filter=-legal/copyright,-build/include_subdir --recursive . 
+
+check: clean
+	cppcheck --enable=all --suppress=missingIncludeSystem -I src .
+
+clean:
+	$(RM) -r $(BUILDDIR)
+
+.PHONY: all build test memory format lint check clean 
+
